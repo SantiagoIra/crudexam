@@ -6,6 +6,7 @@ const bodyparser = require('body-parser');
 app.use(bodyparser.json());
 
 var mysqlConnection = mysql.createConnection({
+    multipleStatements:true,
     host: 'localhost',
     user: 'root',
     password: 'password',
@@ -61,7 +62,23 @@ app.post('/items',(req,res)=>{
     call ItemsAddOrEdit(@id,@name,@qty,@amount);";
     mysqlConnection.query(sql,[emp.id, emp.name, emp.qty, emp.amount],(err, rows, fields)=>{
         if(!err)
-        res.send(rows);
+        rows.forEach(element => {
+            if(element.constructor == Array)
+            res.send("Inserted ID : " + element[0].id);
+        });
+        else
+        console.log(err);
+    })
+});
+
+//update
+app.put('/items',(req,res)=>{
+    let emp = req.body;
+    var sql = "set @id = ?; set @name = ?; set @qty = ?; set @amount = ?; \
+    call ItemsAddOrEdit(@id,@name,@qty,@amount);";
+    mysqlConnection.query(sql,[emp.id, emp.name, emp.qty, emp.amount],(err, rows, fields)=>{
+        if(!err)
+        res.send('Updated Successfully');
         else
         console.log(err);
     })
